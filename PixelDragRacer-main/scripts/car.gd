@@ -9,8 +9,9 @@ var acceleration := 300.0
 var friction := 200.0
 var is_accelerating := false
 var is_braking := false
+var controls_enabled := true
 
-# Cambios manuales: SHIFT sube y CTRL derecho baja.
+# Cambios manuales: SHIFT sube y CTRL izquierdo baja.
 var current_gear := 0
 var max_gears := 4
 var gear_rpm := 0.0
@@ -18,18 +19,25 @@ var max_rpm := 8000.0
 
 func _ready() -> void:
 	$Tag.text = racer_tag
-	print("Auto listo - ¡Comenzando carrera de velocidad!")
+
+func set_controls_enabled(enabled: bool) -> void:
+	controls_enabled = enabled
+	if not enabled:
+		is_accelerating = false
+		is_braking = false
 
 func _input(event: InputEvent) -> void:
-	if not event is InputEventKey or not event.pressed or event.echo:
+	if not controls_enabled or not event is InputEventKey or not event.pressed or event.echo:
 		return
 
 	if event.keycode == KEY_SHIFT:
 		shift_up()
-	elif event.keycode == KEY_CTRL and event.location == KEY_LOCATION_RIGHT:
+	elif event.keycode == KEY_CTRL and event.location == KEY_LOCATION_LEFT:
 		shift_down()
 
 func _physics_process(delta: float) -> void:
+	if not controls_enabled:
+		return
 	handle_input()
 	update_speed(delta)
 	velocity = Vector2(speed, 0.0)
