@@ -41,8 +41,8 @@ func _process(delta: float) -> void:
 	if not race_started or race_finished or not is_instance_valid(car) or not is_instance_valid(rival):
 		return
 
-	# P2 es más lento en promedio; su máximo aleatorio por partida es 205–245 km/h.
-	# Pequeñas variaciones de ritmo evitan que todas las carreras se sientan iguales.
+	# P2 tiene un ritmo más bajo y variable para que el resultado dependa más
+	# de los cambios de marcha del jugador.
 	rival_change_timer -= delta
 	if rival_change_timer <= 0.0:
 		choose_rival_target_speed()
@@ -75,15 +75,16 @@ func start_race() -> void:
 
 func configure_rival_for_new_race() -> void:
 	rival_speed = 0.0
-	# Cambiamos el límite por carrera para que P2 sea competitivo, pero no imbatible.
-	var rival_max_speed_kmh := randf_range(205.0, 245.0)
+	# El máximo aleatorio de P2 es menor y cambia cada carrera: 145–205 km/h.
+	var rival_max_speed_kmh := randf_range(145.0, 205.0)
 	rival_max_speed = rival_max_speed_kmh * RIVAL_SPEED_TO_PIXELS
-	rival_acceleration = randf_range(20.0, 32.0) * RIVAL_SPEED_TO_PIXELS
+	rival_acceleration = randf_range(12.0, 22.0) * RIVAL_SPEED_TO_PIXELS
 	choose_rival_target_speed()
 
 func choose_rival_target_speed() -> void:
-	rival_target_speed = randf_range(rival_max_speed * 0.78, rival_max_speed * 0.96)
-	rival_change_timer = randf_range(1.5, 3.5)
+	# P2 fluctúa ampliamente, incluso reduciendo el ritmo durante algunos tramos.
+	rival_target_speed = randf_range(rival_max_speed * 0.50, rival_max_speed * 0.96)
+	rival_change_timer = randf_range(1.5, 4.0)
 
 func finish_race(winner: String) -> void:
 	race_finished = true
