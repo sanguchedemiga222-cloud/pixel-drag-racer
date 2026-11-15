@@ -2,20 +2,24 @@ extends CharacterBody2D
 
 @export var racer_tag: String = "P1"
 
-# Velocidad y aceleración en unidades de Godot (get_current_speed convierte a km/h).
+# La velocidad interna se expresa en km/h; se convierte a unidades de movimiento al mover el auto.
 var speed := 0.0
-var max_speed := 250.0
-var acceleration := 300.0
-var friction := 200.0
+var friction := 5.0
+var braking_deceleration := 35.0
 var is_accelerating := false
 var is_braking := false
 var controls_enabled := true
 
-# Cambios manuales: SHIFT sube y CTRL izquierdo baja.
+# Velocidad máxima por marcha. La quinta permite llegar a 250 km/h.
+const GEAR_MAX_SPEEDS_KMH: Array[float] = [80.0, 125.0, 170.0, 210.0, 250.0]
+# Aceleración decreciente en marchas altas para que la velocidad suba progresivamente.
+const GEAR_ACCELERATION_KMH_PER_SEC: Array[float] = [18.0, 13.0, 9.0, 6.5, 4.5]
+
 var current_gear := 0
-var max_gears := 4
-var gear_rpm := 0.0
+var gear_rpm := 900.0
 var max_rpm := 8000.0
+const RPM_RESPONSE := 3500.0
+const SPEED_TO_PIXELS := 2.5
 
 func _ready() -> void:
 	$Tag.text = racer_tag
@@ -40,7 +44,7 @@ func _physics_process(delta: float) -> void:
 		return
 	handle_input()
 	update_speed(delta)
-	velocity = Vector2(speed, 0.0)
+	velocity = Vector2(speed * SPEED_TO_PIXELS, 0.0)
 	move_and_slide()
 
 func handle_input() -> void:
@@ -49,22 +53,20 @@ func handle_input() -> void:
 
 func update_speed(delta: float) -> void:
 	if is_accelerating:
-		var current_acceleration = acceleration
-		if current_gear > 0:
-			current_acceleration += current_gear * 50.0
-		speed += current_acceleration * delta
-		var gear_max_speed = max_speed + (current_gear * 50.0)
-		speed = minf(speed, gear_max_speed)
+		speed += GEAR_ACCELERATION_KMH_PER_SEC[current_gear] * delta
+		speed = minf(speed, GEAR_MAX_SPEEDS_KMH[current_gear])
 	elif is_braking:
-		speed = maxf(0.0, speed - friction * 3.0 * delta)
+		speed = maxf(0.0, speed - braking_deceleration * delta)
 	else:
 		speed = maxf(0.0, speed - friction * delta)
 
-	var gear_max_speed = max_speed + (current_gear * 50.0)
-	gear_rpm = minf((speed / gear_max_speed) * max_rpm, max_rpm)
+	# Las RPM responden gradualmente y bajan al pasar a una marcha superior.
+	var rpm_ratio := clampf(speed / GEAR_MAX_SPEEDS_KMH[current_gear], 0.0, 1.0)
+	var target_rpm := lerpf(900.0, max_rpm, rpm_ratio)
+	gear_rpm = move_toward(gear_rpm, target_rpm, RPM_RESPONSE * delta)
 
 func shift_up() -> void:
-	if current_gear < max_gears - 1:
+	if current_gear < GEAR_MAX_SPEEDS_KMH.size() - 1:
 		current_gear += 1
 		print("Cambio manual a marcha %d" % (current_gear + 1))
 
@@ -74,7 +76,7 @@ func shift_down() -> void:
 		print("Cambio manual a marcha %d" % (current_gear + 1))
 
 func get_current_speed() -> int:
-	return int(speed / 2.5)
+	return int(speed)
 
 func get_current_gear() -> int:
 	return current_gear + 1

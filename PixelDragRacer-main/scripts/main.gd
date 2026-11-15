@@ -19,6 +19,7 @@ var finish_screen: ColorRect
 var countdown_label: Label
 
 const FINISH_X := 3950.0
+const RIVAL_SPEED_TO_PIXELS := 2.5
 
 func _ready() -> void:
 	randomize()
@@ -40,7 +41,7 @@ func _process(delta: float) -> void:
 	if not race_started or race_finished or not is_instance_valid(car) or not is_instance_valid(rival):
 		return
 
-	# P2 varía su ritmo durante la carrera y también entre partidas.
+	# P2 tiene un máximo distinto por carrera (230–260 km/h) y pequeñas variaciones durante la marcha.
 	rival_change_timer -= delta
 	if rival_change_timer <= 0.0:
 		choose_rival_target_speed()
@@ -73,12 +74,14 @@ func start_race() -> void:
 
 func configure_rival_for_new_race() -> void:
 	rival_speed = 0.0
-	rival_max_speed = randf_range(220.0, 320.0)
-	rival_acceleration = randf_range(140.0, 230.0)
+	# Se fija un límite aleatorio por partida, nunca superior a 260 km/h.
+	var rival_max_speed_kmh := randf_range(230.0, 260.0)
+	rival_max_speed = rival_max_speed_kmh * RIVAL_SPEED_TO_PIXELS
+	rival_acceleration = randf_range(30.0, 45.0) * RIVAL_SPEED_TO_PIXELS
 	choose_rival_target_speed()
 
 func choose_rival_target_speed() -> void:
-	rival_target_speed = randf_range(rival_max_speed * 0.72, rival_max_speed)
+	rival_target_speed = randf_range(rival_max_speed * 0.88, rival_max_speed)
 	rival_change_timer = randf_range(1.5, 3.5)
 
 func finish_race(winner: String) -> void:
