@@ -1,19 +1,27 @@
 extends Node2D
 
-@onready var car = $Car
-@onready var speed_label = $UI/VelocidadLabel
-@onready var gear_label = $UI/MarchaLabel
-@onready var rpm_label = $UI/RPMLbl
+@onready var car: CharacterBody2D = $Car
+@onready var rival: Node2D = $Rival
+@onready var speed_label: Label = $UI/VelocidadLabel
+@onready var gear_label: Label = $UI/MarchaLabel
+@onready var rpm_label: Label = $UI/RPMLbl
 
-func _ready():
+var rival_speed := 0.0
+const RIVAL_ACCELERATION := 220.0
+const RIVAL_MAX_SPEED := 250.0
+
+func _ready() -> void:
 	print("¡Juego iniciado!")
 
-func _process(delta):
-	# Actualizar HUD en tiempo real
-	var current_speed = car.get_current_speed()
-	var current_gear = car.get_current_gear()
-	var current_rpm = car.get_current_rpm()
-	
-	speed_label.text = "Velocidad: %d km/h" % current_speed
-	gear_label.text = "Marcha: %d" % current_gear
-	rpm_label.text = "RPM: %d" % current_rpm
+func _process(delta: float) -> void:
+	if not is_instance_valid(car) or not is_instance_valid(rival):
+		return
+
+	# P2 acelera automáticamente por el segundo carril.
+	rival_speed = minf(rival_speed + RIVAL_ACCELERATION * delta, RIVAL_MAX_SPEED)
+	rival.position.x += rival_speed * delta
+
+	# Actualizar el HUD de P1.
+	speed_label.text = "Velocidad: %d km/h" % car.get_current_speed()
+	gear_label.text = "Marcha: %d" % car.get_current_gear()
+	rpm_label.text = "RPM: %d" % car.get_current_rpm()

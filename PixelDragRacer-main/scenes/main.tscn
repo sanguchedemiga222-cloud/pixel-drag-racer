@@ -55,11 +55,18 @@ enabled = true
 [node name="Rival" type="Node2D" parent="."]
 position = Vector2(100, 275)
 
+[node name="RivalBody" type="ColorRect" parent="Rival"]
+offset_left = -30.0
+offset_top = -20.0
+offset_right = 30.0
+offset_bottom = 20.0
+color = Color(0.2, 0.65, 1, 1)
+
 [node name="Tag" type="Label" parent="Rival"]
 offset_left = -30.0
-offset_top = -15.0
+offset_top = -44.0
 offset_right = 30.0
-offset_bottom = 15.0
+offset_bottom = -20.0
 text = "P2"
 horizontal_alignment = 1
 theme_override_colors/font_color = Color(1, 1, 1, 1)
