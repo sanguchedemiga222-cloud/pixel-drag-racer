@@ -1,5 +1,7 @@
 extends CharacterBody2D
 
+@export var racer_tag: String = "P1"
+
 # Variables de movimiento
 var speed = 0.0
 var max_speed = 250.0
@@ -21,6 +23,7 @@ var gear_rpm = 0.0
 var max_rpm = 8000.0
 
 func _ready():
+	$Tag.text = racer_tag
 	print("Auto listo - ¡Comenzando carrera de velocidad!")
 
 func _physics_process(delta):
