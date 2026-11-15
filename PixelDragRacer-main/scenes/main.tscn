@@ -106,7 +106,8 @@ offset_bottom = 250.0
 text = "CONTROLES:
 ⬆ ARRIBA: Acelerar
 ⬇ ABAJO: Frenar
-ESPACIO: Cambiar Marcha"
+SHIFT: Subir marcha
+CTRL Der.: Bajar marcha"
 label_settings = SubResource("LabelSettings_4")
 
 [node name="FinishLabel" type="Label" parent="UI"]

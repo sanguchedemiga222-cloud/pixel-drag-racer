@@ -2,7 +2,7 @@ extends CharacterBody2D
 
 @export var racer_tag: String = "P1"
 
-# Variables de movimiento del jugador
+# Velocidad y aceleración en unidades de Godot (get_current_speed convierte a km/h).
 var speed := 0.0
 var max_speed := 250.0
 var acceleration := 300.0
@@ -10,7 +10,7 @@ var friction := 200.0
 var is_accelerating := false
 var is_braking := false
 
-# Variables de cambio de marcha
+# Cambios manuales: SHIFT sube y CTRL derecho baja.
 var current_gear := 0
 var max_gears := 4
 var gear_rpm := 0.0
@@ -20,18 +20,24 @@ func _ready() -> void:
 	$Tag.text = racer_tag
 	print("Auto listo - ¡Comenzando carrera de velocidad!")
 
+func _input(event: InputEvent) -> void:
+	if not event is InputEventKey or not event.pressed or event.echo:
+		return
+
+	if event.keycode == KEY_SHIFT:
+		shift_up()
+	elif event.keycode == KEY_CTRL and event.location == KEY_LOCATION_RIGHT:
+		shift_down()
+
 func _physics_process(delta: float) -> void:
 	handle_input()
 	update_speed(delta)
-	update_gear()
 	velocity = Vector2(speed, 0.0)
 	move_and_slide()
 
 func handle_input() -> void:
 	is_accelerating = Input.is_action_pressed("ui_up")
 	is_braking = Input.is_action_pressed("ui_down")
-	if Input.is_action_just_pressed("ui_accept"):
-		shift_up()
 
 func update_speed(delta: float) -> void:
 	if is_accelerating:
@@ -45,25 +51,19 @@ func update_speed(delta: float) -> void:
 		speed = maxf(0.0, speed - friction * 3.0 * delta)
 	else:
 		speed = maxf(0.0, speed - friction * delta)
-	gear_rpm = (speed / max_speed) * max_rpm
 
-func update_gear() -> void:
-	if gear_rpm >= max_rpm * 0.95 and current_gear < max_gears - 1:
-		shift_up()
-	if gear_rpm < max_rpm * 0.3 and current_gear > 0:
-		shift_down()
+	var gear_max_speed = max_speed + (current_gear * 50.0)
+	gear_rpm = minf((speed / gear_max_speed) * max_rpm, max_rpm)
 
 func shift_up() -> void:
 	if current_gear < max_gears - 1:
 		current_gear += 1
-		gear_rpm = max_rpm * 0.3
-		print("Cambio a marcha %d" % (current_gear + 1))
+		print("Cambio manual a marcha %d" % (current_gear + 1))
 
 func shift_down() -> void:
 	if current_gear > 0:
 		current_gear -= 1
-		gear_rpm = max_rpm * 0.3
-		print("Cambio a marcha %d" % (current_gear + 1))
+		print("Cambio manual a marcha %d" % (current_gear + 1))
 
 func get_current_speed() -> int:
 	return int(speed / 2.5)
